@@ -60,6 +60,28 @@ class Cannonball:
             self.move(step, user_grav)
 
         return xs, ys
+    
+class Crazyball(Cannonball):
+    def move(self, sec, grav):
+        self.ran_q = random.randrange(0,10)
+        if self.getX() < 400:
+            dx = self._vx * sec 
+            dy = self._vy * sec 
+
+            self._vx += self.ran_q
+            self._vy = self._vy - grav * sec
+
+            self._x = self._x + dx
+            self._y = self._y + dy
+
+        
+
+class Print_Iface(Cannonball):
+    def main_print(self, angle, velocity, x, y):
+        print(f"postion: ({x}, {y})")
+        print(f"angle: {angle}")
+        print(f"velocity: {velocity}")
+
 
 def run_app():
     st.title("Cannonball Trajectory")
