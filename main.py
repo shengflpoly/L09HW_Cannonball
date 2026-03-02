@@ -17,6 +17,7 @@ class Cannonball:
         self._y = 0
         self._vx = 0
         self._vy = 0
+        self.mainPrint = Print_Iface()
 
     ## Move the cannon ball, using its current velocities.
     #  @param sec the amount of time that has elapsed.
@@ -58,25 +59,20 @@ class Cannonball:
             xs.append(self.getX())
             ys.append(self.getY())
             self.move(step, user_grav)
+            self.mainPrint.main_print(angle, velocity, self._x, self._y)
 
         return xs, ys
     
 class Crazyball(Cannonball):
     def move(self, sec, grav):
         self.ran_q = random.randrange(0,10)
+        super().move(sec, grav)
         if self.getX() < 400:
-            dx = self._vx * sec 
-            dy = self._vy * sec 
-
             self._vx += self.ran_q
-            self._vy = self._vy - grav * sec
-
-            self._x = self._x + dx
-            self._y = self._y + dy
 
         
 
-class Print_Iface(Cannonball):
+class Print_Iface:
     def main_print(self, angle, velocity, x, y):
         print(f"postion: ({x}, {y})")
         print(f"angle: {angle}")
@@ -91,13 +87,36 @@ def run_app():
     )
     velocity = st.selectbox("Initial velocity", options=[15, 25, 40], index=1)
 
-    gravity_options = {"Earth": 9.81}
+    gravity_options = {"Earth": 9.81, "Moon": 1.62, "Crazy": 5}
     gravity_name = st.selectbox("Gravity", options=list(gravity_options.keys()), index=0)
     gravity = gravity_options[gravity_name]
     step = .1
 
     col1, col2 = st.columns(2)
     simulate = col1.button("Simulate")
+    crazyball = col2.button("Crazyball")
+
+    if crazyball:
+        angle_rad = radians(angle_deg)
+        ball = Crazyball(0)
+        xs, ys = ball.shoot(angle_rad, velocity, gravity, step)
+
+        if not xs:
+            st.warning("No trajectory points were generated.")
+            return
+
+        df = pd.DataFrame({"x": xs, "y": ys})
+
+        chart = (
+            alt.Chart(df)
+            .mark_line()
+            .encode(
+                x=alt.X("x:Q", scale=alt.Scale(domain=[0, 400]), title="Distance (m)"),
+                y=alt.Y("y:Q", scale=alt.Scale(domain=[0, 200]), title="Height (m)")
+            )
+            .properties(width=700, height=400)
+        )
+        st.altair_chart(chart, use_container_width=True)
 
     if simulate:
         angle_rad = radians(angle_deg)
@@ -114,8 +133,8 @@ def run_app():
             alt.Chart(df)
             .mark_line()
             .encode(
-                x=alt.X("x:Q", scale=alt.Scale(domain=[0, 200]), title="Distance (m)"),
-                y=alt.Y("y:Q", scale=alt.Scale(domain=[0, 100]), title="Height (m)")
+                x=alt.X("x:Q", scale=alt.Scale(domain=[0, 400]), title="Distance (m)"),
+                y=alt.Y("y:Q", scale=alt.Scale(domain=[0, 200]), title="Height (m)")
             )
             .properties(width=700, height=400)
         )
